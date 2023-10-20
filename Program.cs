@@ -4,23 +4,53 @@
     {
         public static void Main(string[] args)
         {
-            Console.OutputEncoding = System.Text.Encoding.UTF8;
-            Console.WriteLine("-----Calculadora 2000-----\n");
-            Console.WriteLine("+ - Adição\n- - Subtração\n* - Multiplicação");
-            Console.WriteLine("/ - Divisão\n^ - Potenciação");
-            Console.WriteLine("Exemplo: 2 + 10 * 5 / (10 - 8).\n");
+            string lastResult = "";
 
-            string? inputStream = Console.ReadLine();
+            PrintMenu();
 
-            if (inputStream != null)
+            while (true)
             {
-                inputStream = inputStream.Replace(" ", "");
-                List<string> postfix = ConvertInfixToPostfix(inputStream);
-                double result = PostfixEval(postfix);
-                Console.WriteLine($"\nResultado: {result}");
+                string expression = "";
+                var firstKey = Console.ReadKey();
+
+                //Key equal to backspace
+                if (firstKey.KeyChar == (char)8)
+                {
+                    lastResult = "";
+                    Console.Clear();
+                    PrintMenu();
+                }
+                //Key equal to enter
+                else if (firstKey.KeyChar == (char)13)
+                {
+                    Console.WriteLine();
+                    return;
+                }
+                else
+                {
+                    expression += lastResult + firstKey.KeyChar;
+                }
+
+                expression += Console.ReadLine();
+
+                if (expression == "") return;
+
+                try
+                {
+                    expression = expression.Replace(" ", "");
+
+                    List<string> postfixExpression = ConvertInfixToPostfix(expression);
+                    lastResult = PostfixEval(postfixExpression).ToString();
+                    Console.Write(lastResult);
+                }
+                catch
+                {
+                    Console.WriteLine("Mathematical expression invalid!");
+                    return;
+                }
             }
         }
-        public static List<string> ConvertInfixToPostfix(string expression)
+        private static List<string> ConvertInfixToPostfix(string expression)
         {
             Stack<string> stack = new();
             List<string> postfix = new();
@@ -66,22 +96,27 @@
                 }
                 else if (ch == '+' || ch == '-' || ch == '*' || ch == '/' || ch == '^')
                 {
-                    if (temp != "") postfix.Add(temp);
-                    temp = "";
-
-                    if (stack.Count == 0)
-                    {
-                        stack.Push(ch.ToString());
-                    }
-                    else if (GetPrecedenceOfOperators(ch.ToString()) > GetPrecedenceOfOperators(stack.Peek()))
-                    {
-                        stack.Push(ch.ToString());
-                    }
+                    if (temp == "" && ch == '-') temp += ch;
                     else
                     {
-                        postfix.Add(stack.Pop());
-                        stack.Push(ch.ToString());
+                        if (temp != "") postfix.Add(temp);
+                        temp = "";
+
+                        if (stack.Count == 0)
+                        {
+                            stack.Push(ch.ToString());
+                        }
+                        else if (GetPrecedenceOfOperators(ch.ToString()) > GetPrecedenceOfOperators(stack.Peek()))
+                        {
+                            stack.Push(ch.ToString());
+                        }
+                        else
+                        {
+                            postfix.Add(stack.Pop());
+                            stack.Push(ch.ToString());
+                        }
                     }
+
                 }
                 else
                 {
@@ -98,7 +133,7 @@
 
             return postfix;
         }
-        public static int GetPrecedenceOfOperators(string ch)
+        private static int GetPrecedenceOfOperators(string ch)
         {
             if (ch == "+" || ch == "-")
                 return 1;
@@ -109,7 +144,7 @@
             else
                 return 0;
         }
-        public static double PostfixEval(List<string> expression)
+        private static double PostfixEval(List<string> expression)
         {
             Stack<double> stack = new();
 
@@ -136,6 +171,14 @@
             }
 
             return stack.Pop();
+        }
+        private static void PrintMenu()
+        {
+            Console.OutputEncoding = System.Text.Encoding.UTF8;
+            Console.WriteLine("-----Calculadora 2000-----\n");
+            Console.WriteLine("+ - Adição\n- - Subtração\n* - Multiplicação");
+            Console.WriteLine("/ - Divisão\n^ - Potenciação");
+            Console.WriteLine("Exemplo: 2 + 10 * 5 / (10 - 8).\n");
         }
     }
 }
